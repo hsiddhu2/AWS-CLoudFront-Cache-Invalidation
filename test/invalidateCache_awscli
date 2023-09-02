@@ -1,0 +1,50 @@
+# Run below AWS CLI commands to invalidate CloudFront cache
+
+# Get the distribution ID from CloudFront console
+aws cloudfront list-distributions --query "DistributionList.Items[].{DomainName:DomainName, Id:Id, Origin:Origins.Items[].DomainName}" --output table
+# OUTPUT
+# -----------------------------------------------------+
+# |                    ListDistributions               |
+# +---------------------+------------------------------+
+# |  DomainName         |  Id                          |
+# +---------------------+------------------------------+
+# |  d111111abcdef8.cloudfront.net  |  E1Q2Z3R4S5T6U7  |
+# +---------------------+------------------------------+
+
+
+
+# Get S3 Objects tree structure
+aws s3 ls s3://mybucket --recursive
+# OUTPUT
+# 2019-01-01 00:00:00          0
+# 2019-01-01 00:00:00          0 folder1/
+# 2019-01-01 00:00:00          0 folder1/folder2/
+# 2019-01-01 00:00:00          0 folder1/folder2/folder3/
+# 2019-01-01 00:00:00          0 folder1/folder2/folder3/file1.txt
+# 2019-01-01 00:00:00          0 folder1/folder2/folder3/file2.txt
+# 2019-01-01 00:00:00          0 folder1/folder2/folder3/file3.txt
+
+# Run command to invalidate cache
+aws cloudfront create-invalidation --distribution-id E1Q2Z3R4S5T6U7 --paths "/*"
+# OUTPUT
+# {
+#     "Location": "https://cloudfront.amazonaws.com/2019-03-26/distribution/E1Q2Z3R4S5T6U7/invalidation/I1Q2Z3R4S5T6U7",
+#     "Invalidation": {
+#         "Id": "I1Q2Z3R4S5T6U7",
+#         "Status": "InProgress",
+#         "CreateTime": "2019-03-26T00:00:00.000Z",
+#         "InvalidationBatch": {
+#             "Paths": {
+#                 "Quantity": 1,
+#                 "Items": [
+#                     "/*"
+#                 ]
+#             },
+#             "CallerReference": "2019-03-26T00:00:00.000Z"
+#         }
+#     }
+# }
+
+
+
+

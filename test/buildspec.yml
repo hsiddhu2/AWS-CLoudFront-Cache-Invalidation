@@ -1,0 +1,44 @@
+# Build Specification for CodeBuild to Invalidate the CloudFront Cache
+
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - git config --global --add safe.directory /codebuild/output/srcDownload/src
+      # Get the latest commit hash on the master branch
+      - LATEST_COMMIT=$(git rev-parse master)
+      - echo "$LATEST_COMMIT"
+
+      # Fetch CloudFront distribution ID from Parameter Store
+      - ID1=$(aws ssm get-parameter --name /CodeBuild/cloudfront/root/distribution-id --query Parameter.Value --output text --with-decryption)
+      - echo "$ID1"
+      - ID2=$(aws ssm get-parameter --name /CodeBuild/codeBuild/cloudfront/subdomain/distribution-id --query Parameter.Value --output text --with-decryption)
+      - echo "$ID2"
+
+      # Fetch the list of changed objects between the latest commit and current HEAD
+      - echo "Running command git diff-tree --no-commit-id --name-only -r ${LATEST_COMMIT}"
+      - CHANGED_OBJECTS=$(git diff-tree --no-commit-id --name-only -r ${LATEST_COMMIT})
+      - echo "$CHANGED_OBJECTS"
+
+  build:
+    commands:
+      # Loop through changed objects and create CloudFront invalidations
+      - |
+        for OBJECT in $CHANGED_OBJECTS; do
+          # Create the object path using the name of the changed file
+          OBJECT_PATH=/$OBJECT
+
+          # Invalidate CloudFront cache for the object path
+          aws cloudfront create-invalidation --distribution-id $ID1 --paths "$OBJECT_PATH"
+          aws cloudfront create-invalidation --distribution-id $ID2 --paths "$OBJECT_PATH"
+
+          echo "$OBJECT_PATH"
+        done      
+
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: yes
+  base-directory: '/'
+  name: buildartifact
