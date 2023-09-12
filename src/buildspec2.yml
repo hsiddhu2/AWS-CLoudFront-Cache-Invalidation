@@ -11,7 +11,7 @@ env:
   variables:
     CLOUDFRONT_DISTRIBUTION_ID: ""
   parameter-store:
-    CLOUDFRONT_DISTRIBUTION_ID: "/cloudfront/distribution-id"
+    CLOUDFRONT_DISTRIBUTION_ID: "/cloudfront/distribution-id" # Replace with your parameter store path
 
 phases: 
   install:
@@ -22,8 +22,8 @@ phases:
       - pip install awscli
   pre_build:
     commands:
-      - echo "Reading CloudFront distribution ID from parameter store..."
-      - export CLOUDFRONT_DISTRIBUTION_ID=$(aws ssm get-parameter --name /cloudfront/distribution-id --query Parameter.Value --output text)
+      # - echo "Reading CloudFront distribution ID from parameter store..."
+      # - export CLOUDFRONT_DISTRIBUTION_ID=$(aws ssm get-parameter --name /cloudfront/distribution-id --query Parameter.Value --output text)
   build:
     commands:
       - echo "Invalidating CloudFront cache..."
