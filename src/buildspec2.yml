@@ -28,6 +28,7 @@ phases:
     commands:
       - echo "Invalidating CloudFront cache..."
       - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
-```
-
+  post_build:
+    commands:
+      - echo "CloudFront cache invalidated successfully!"
   
