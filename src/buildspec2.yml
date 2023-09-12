@@ -1,0 +1,33 @@
+#BuildSpec file for CodeBuild to invalidate the CloudFront Cache
+  
+#Use the following steps to create a CodeBuild project that invalidates the CloudFront cache:
+# 1. Read the cloudfront distribution ID from the parameter store
+# 2. Run AWS CLI command to invalidate the CloudFront cache on the distribution ID
+# 3. Use "/*" to invalidate all files in the distribution. You can also specify a specific file path to invalidate.
+
+version: 0.2
+
+env:
+  variables:
+    CLOUDFRONT_DISTRIBUTION_ID: ""
+  parameter-store:
+    CLOUDFRONT_DISTRIBUTION_ID: "/cloudfront/distribution-id"
+
+phases: 
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - echo "Installing dependencies..."
+      - pip install awscli
+  pre_build:
+    commands:
+      - echo "Reading CloudFront distribution ID from parameter store..."
+      - export CLOUDFRONT_DISTRIBUTION_ID=$(aws ssm get-parameter --name /cloudfront/distribution-id --query Parameter.Value --output text)
+  build:
+    commands:
+      - echo "Invalidating CloudFront cache..."
+      - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+```
+
+  
